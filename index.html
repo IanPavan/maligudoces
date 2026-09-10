@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doces da Casa — Cardápio e encomendas</title>
+<meta name="theme-color" content="#B92B55">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23B92B55'/%3E%3Cpath d='M16 40h32v6a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4z' fill='%23FCF5EE'/%3E%3Cpath d='M18 40c0-8 6-14 14-14s14 6 14 14z' fill='%23FCF5EE'/%3E%3Ccircle cx='32' cy='21' r='4' fill='%236E8E4E'/%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --creme:#FCF5EE;
+    --papel:#FFFFFF;
+    --cacau:#3A211A;
+    --cacau-claro:#7A5A4E;
+    --framboesa:#B92B55;
+    --framboesa-escura:#8E1D40;
+    --pistache:#6E8E4E;
+    --areia:#E9D8C6;
+    --sombra:rgba(58,33,26,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--creme);
+    color:var(--cacau);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    padding-bottom:96px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px;}
+  .serif{font-family:'Instrument Serif',Georgia,serif;font-weight:400;}
+
+  /* ---------- aviso de demonstração ---------- */
+  #demoBar{
+    background:var(--cacau);color:var(--creme);
+    font-size:13px;text-align:center;padding:9px 20px;
+  }
+  #demoBar b{color:#F3C4A0;}
+
+  /* ---------- topo ---------- */
+  header{padding:38px 0 26px;border-bottom:1px solid var(--areia);}
+  .marca{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  h1{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(38px,9vw,58px);line-height:1;letter-spacing:-.5px;}
+  h1 em{font-style:italic;color:var(--framboesa);}
+  .sub{margin-top:14px;font-size:17px;color:var(--cacau-claro);max-width:46ch;}
+
+  .fatos{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .fato{
+    background:var(--papel);border:1px solid var(--areia);border-radius:999px;
+    padding:7px 14px;font-size:13.5px;color:var(--cacau-claro);
+  }
+  .fato b{color:var(--cacau);font-weight:500;}
+
+  /* ---------- navegação de sabores ---------- */
+  nav{position:sticky;top:0;z-index:30;background:var(--creme);border-bottom:1px solid var(--areia);}
+  .navrow{display:flex;gap:8px;overflow-x:auto;padding:12px 20px;max-width:760px;margin:0 auto;scrollbar-width:none;}
+  .navrow::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;border:1px solid var(--areia);background:var(--papel);
+    border-radius:999px;padding:7px 16px;font-size:14px;font-family:inherit;
+    color:var(--cacau-claro);cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+  }
+  .tab[aria-selected="true"]{background:var(--framboesa);border-color:var(--framboesa);color:#fff;}
+  .tab:focus-visible{outline:2px solid var(--framboesa);outline-offset:2px;}
+
+  /* ---------- itens ---------- */
+  main{padding-top:28px;}
+  h2.grupo{
+    font-family:'Instrument Serif',Georgia,serif;font-weight:400;
+    font-size:30px;margin:34px 0 4px;
+  }
+  .grupo-nota{font-size:14.5px;color:var(--cacau-claro);margin-bottom:16px;}
+
+  .item{
+    display:grid;grid-template-columns:96px 1fr;gap:16px;
+    background:var(--papel);border:1px solid var(--areia);border-radius:16px;
+    padding:14px;margin-bottom:12px;
+  }
+  .foto{
+    width:96px;height:96px;border-radius:11px;object-fit:cover;background:var(--areia);
+    display:flex;align-items:center;justify-content:center;font-size:34px;
+  }
+  .item h3{font-size:17px;font-weight:500;line-height:1.3;}
+  .item p.desc{font-size:14.5px;color:var(--cacau-claro);margin-top:3px;}
+  .linha-preco{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;}
+  .preco{font-size:19px;font-weight:700;}
+  .preco small{font-weight:400;font-size:13px;color:var(--cacau-claro);}
+  .esgotado{font-size:13.5px;color:var(--cacau-claro);font-style:italic;}
+
+  .stepper{display:flex;align-items:center;gap:4px;}
+  .btn-q{
+    width:34px;height:34px;border-radius:9px;border:1px solid var(--areia);
+    background:var(--creme);color:var(--cacau);font-size:19px;line-height:1;
+    cursor:pointer;font-family:inherit;
+  }
+  .btn-q:hover{border-color:var(--framboesa);color:var(--framboesa);}
+  .btn-q:focus-visible{outline:2px solid var(--framboesa);outline-offset:2px;}
+  .qtd{min-width:26px;text-align:center;font-weight:700;font-size:16px;}
+  .btn-add{
+    border:none;background:var(--framboesa);color:#fff;border-radius:10px;
+    padding:9px 18px;font-size:14.5px;font-weight:500;cursor:pointer;font-family:inherit;
+  }
+  .btn-add:hover{background:var(--framboesa-escura);}
+  .btn-add:focus-visible{outline:2px solid var(--cacau);outline-offset:2px;}
+  .btn-add[disabled]{background:var(--areia);color:var(--cacau-claro);cursor:not-allowed;}
+
+  /* ---------- barra do carrinho ---------- */
+  #barra{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--cacau);color:var(--creme);
+    transform:translateY(110%);transition:transform .22s cubic-bezier(.2,.8,.2,1);
+  }
+  #barra.aberta{transform:translateY(0);}
+  .barra-in{
+    max-width:760px;margin:0 auto;padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+  }
+  .barra-info{font-size:14px;line-height:1.35;}
+  .barra-info b{display:block;font-size:19px;font-weight:700;}
+  .btn-fechar{
+    border:none;background:var(--framboesa);color:#fff;border-radius:11px;
+    padding:13px 22px;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .btn-fechar:hover{background:var(--framboesa-escura);}
+
+  /* ---------- modal ---------- */
+  .tela{
+    position:fixed;inset:0;z-index:60;background:rgba(58,33,26,.55);
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+  .tela[hidden]{display:none;}
+  .caixa{
+    background:var(--creme);width:100%;max-width:560px;max-height:94vh;overflow-y:auto;
+    border-radius:20px 20px 0 0;padding:22px 20px 28px;
+  }
+  @media(min-width:620px){
+    .tela{align-items:center;}
+    .caixa{border-radius:20px;}
+  }
+  .caixa-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px;}
+  .caixa h2{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:29px;line-height:1.1;}
+  .btn-x{
+    border:1px solid var(--areia);background:var(--papel);border-radius:9px;
+    width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--cacau-claro);flex:0 0 auto;font-family:inherit;
+  }
+
+  .resumo{background:var(--papel);border:1px solid var(--areia);border-radius:14px;padding:14px;margin:16px 0 20px;}
+  .resumo-linha{display:flex;justify-content:space-between;gap:12px;font-size:15px;padding:5px 0;}
+  .resumo-linha span:first-child{color:var(--cacau-claro);}
+  .resumo hr{border:none;border-top:1px solid var(--areia);margin:9px 0;}
+  .resumo-total{font-weight:700;font-size:18px;}
+
+  fieldset{border:none;margin-bottom:18px;}
+  legend{font-size:14px;font-weight:500;margin-bottom:8px;}
+  label.campo{display:block;font-size:14px;color:var(--cacau-claro);margin:0 0 5px;}
+  input,textarea,select{
+    width:100%;font-family:inherit;font-size:16px;color:var(--cacau);
+    background:var(--papel);border:1px solid var(--areia);border-radius:11px;
+    padding:11px 13px;margin-bottom:13px;
+  }
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--framboesa);outline-offset:-1px;border-color:var(--framboesa);}
+  textarea{resize:vertical;min-height:64px;}
+  .opcoes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .opcao{
+    border:1px solid var(--areia);background:var(--papel);border-radius:11px;
+    padding:10px 15px;font-size:14.5px;cursor:pointer;font-family:inherit;color:var(--cacau);
+  }
+  .opcao[aria-pressed="true"]{background:var(--framboesa);border-color:var(--framboesa);color:#fff;}
+  .opcao:focus-visible{outline:2px solid var(--cacau);outline-offset:2px;}
+
+  .btn-enviar{
+    width:100%;border:none;background:var(--pistache);color:#fff;
+    border-radius:13px;padding:16px;font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .btn-enviar:hover{filter:brightness(.93);}
+  .aviso-envio{font-size:13.5px;color:var(--cacau-claro);text-align:center;margin-top:10px;}
+  .erro{color:var(--framboesa);font-size:14px;margin-bottom:12px;display:none;}
+
+  /* ---------- estados ---------- */
+  .vazio{text-align:center;padding:48px 20px;color:var(--cacau-claro);}
+  .vazio h2{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:26px;color:var(--cacau);margin-bottom:6px;}
+
+  footer{border-top:1px solid var(--areia);margin-top:44px;padding:24px 0 8px;font-size:13.5px;color:var(--cacau-claro);}
+  footer a{color:var(--framboesa);}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<div id="demoBar">Página de demonstração — os doces e preços abaixo são <b>exemplos</b> e podem ser trocados na planilha.</div>
+
+<div class="wrap">
+  <header>
+    <div class="marca">
+      <h1 class="serif">Doces <em>da Casa</em></h1>
+    </div>
+    <p class="sub">Bolo de pote, brigadeiro gourmet e ovo de colher feitos por encomenda, aqui em Umuarama. Monte seu pedido na página e receba o resumo pronto no WhatsApp.</p>
+    <div class="fatos">
+      <span class="fato">Encomenda com <b>2 dias</b> de antecedência</span>
+      <span class="fato">Pedido mínimo <b>R$ 25</b></span>
+      <span class="fato">Entrega <b>R$ 8</b> ou retirada</span>
+      <span class="fato">Pix, dinheiro ou cartão</span>
+    </div>
+  </header>
+</div>
+
+<nav><div class="navrow" id="abas" role="tablist"></div></nav>
+
+<main class="wrap" id="lista"></main>
+
+<div class="wrap">
+  <footer>
+    <p>Doces da Casa · Umuarama/PR · Pedidos pelo WhatsApp</p>
+    <p style="margin-top:6px">Página feita por <a href="#">seu nome aqui</a></p>
+  </footer>
+</div>
+
+<!-- ============ BARRA DO CARRINHO ============ -->
+<div id="barra">
+  <div class="barra-in">
+    <div class="barra-info">
+      <span id="barraQtd">0 itens</span>
+      <b id="barraTotal">R$ 0,00</b>
+    </div>
+    <button class="btn-fechar" id="btnFechar">Fechar pedido</button>
+  </div>
+</div>
+
+<!-- ============ TELA DE PEDIDO ============ -->
+<div class="tela" id="tela" hidden role="dialog" aria-modal="true" aria-labelledby="tituloPedido">
+  <div class="caixa">
+    <div class="caixa-topo">
+      <h2 id="tituloPedido">Seu pedido</h2>
+      <button class="btn-x" id="btnX" aria-label="Voltar ao cardápio">✕</button>
+    </div>
+
+    <div class="resumo" id="resumo"></div>
+
+    <p class="erro" id="erro"></p>
+
+    <fieldset>
+      <legend>Como você prefere receber?</legend>
+      <div class="opcoes" id="opcEntrega">
+        <button class="opcao" data-entrega="Entrega" aria-pressed="true">Entrega (R$ 8)</button>
+        <button class="opcao" data-entrega="Retirada" aria-pressed="false">Retirar no local</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Seus dados</legend>
+      <label class="campo" for="fNome">Nome</label>
+      <input id="fNome" type="text" autocomplete="name" placeholder="Como podemos te chamar">
+
+      <label class="campo" for="fTel">WhatsApp</label>
+      <input id="fTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(44) 90000-0000">
+
+      <div id="blocoEndereco">
+        <label class="campo" for="fEnd">Endereço de entrega</label>
+        <input id="fEnd" type="text" autocomplete="street-address" placeholder="Rua, número, bairro e ponto de referência">
+      </div>
+
+      <label class="campo" for="fData">Para qual dia?</label>
+      <input id="fData" type="date">
+    </fieldset>
+
+    <fieldset>
+      <legend>Forma de pagamento</legend>
+      <div class="opcoes" id="opcPagto">
+        <button class="opcao" data-pagto="Pix" aria-pressed="true">Pix</button>
+        <button class="opcao" data-pagto="Dinheiro" aria-pressed="false">Dinheiro</button>
+        <button class="opcao" data-pagto="Cartão na entrega" aria-pressed="false">Cartão na entrega</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Alguma observação?</legend>
+      <textarea id="fObs" placeholder="Recheio, escrita no bolo, alergia, horário preferido..."></textarea>
+    </fieldset>
+
+    <button class="btn-enviar" id="btnEnviar">Enviar pedido no WhatsApp</button>
+    <p class="aviso-envio">O pedido vai pronto e conferido. Você só confirma na conversa.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =====================================================================
+     CONFIGURAÇÃO — mude só o que está aqui dentro
+  ===================================================================== */
+  const CONFIG = {
+    whatsapp: "5544998340965",   // DDI + DDD + número, só dígitos
+    taxaEntrega: 8.00,
+    pedidoMinimo: 25.00,
+    diasAntecedencia: 2,
+    chavePix: "",                // opcional: aparece na mensagem se preenchido
+    planilhaCSV: "https://docs.google.com/spreadsheets/d/e/2PACX-...&output=csv"              // cole aqui o link CSV publicado do Google Sheets
+  };
+
+  /* Produtos de exemplo — usados enquanto a planilha não está conectada. */
+  const EXEMPLOS = [
+    {nome:"Bolo de pote de ninho com morango", grupo:"Bolos de pote", preco:14.00, unidade:"pote 250ml", desc:"Massa branca, creme de leite ninho e morango fresco.", emoji:"🍓", ativo:true},
+    {nome:"Bolo de pote de chocolate com café", grupo:"Bolos de pote", preco:14.00, unidade:"pote 250ml", desc:"Massa de chocolate molhadinha com brigadeiro de café.", emoji:"☕", ativo:true},
+    {nome:"Bolo de pote de limão", grupo:"Bolos de pote", preco:13.00, unidade:"pote 250ml", desc:"Massa cítrica com mousse de limão siciliano.", emoji:"🍋", ativo:false},
+    {nome:"Brigadeiro gourmet tradicional", grupo:"Brigadeiros", preco:3.50, unidade:"unidade", desc:"Chocolate meio amargo e granulado belga. Mínimo 10 unidades.", emoji:"🍫", ativo:true},
+    {nome:"Beijinho com coco queimado", grupo:"Brigadeiros", preco:3.50, unidade:"unidade", desc:"Leite condensado e coco tostado na hora.", emoji:"🥥", ativo:true},
+    {nome:"Caixa mista com 20 docinhos", grupo:"Brigadeiros", preco:62.00, unidade:"caixa", desc:"Você escolhe até 4 sabores. Ideal para presente.", emoji:"🎁", ativo:true},
+    {nome:"Ovo de colher de ninho", grupo:"Ovos de colher", preco:48.00, unidade:"350g", desc:"Casca de chocolate ao leite com recheio de ninho trufado.", emoji:"🥚", ativo:true},
+    {nome:"Torta de morango inteira", grupo:"Tortas", preco:95.00, unidade:"aro 20cm", desc:"Serve de 10 a 12 pessoas. Encomenda com 3 dias.", emoji:"🍰", ativo:true}
+  ];
+
+  /* ===================================================================== */
+
+  const brl = (n)=> n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const sim = (v)=> ["sim","true","1","s","x"].includes(String(v||"").trim().toLowerCase());
+  const $ = (id)=> document.getElementById(id);
+
+  let PRODUTOS = [];
+  let grupoAtivo = "Tudo";
+  const carrinho = new Map();   // id -> quantidade
+  let entrega = "Entrega";
+  let pagamento = "Pix";
+
+  /* ---------- carregar produtos ---------- */
+  function daPlanilha(linhas){
+    return linhas
+      .filter(l => (l.Nome||"").trim())
+      .map((l,i)=>({
+        id:"p"+i,
+        nome:(l.Nome||"").trim(),
+        grupo:(l.Grupo||l.Categoria||"Doces").trim(),
+        preco:parseFloat(String(l.Preco||l.Preço||"0").replace(",",".")) || 0,
+        unidade:(l.Unidade||"").trim(),
+        desc:(l.Descricao||l.Descrição||"").trim(),
+        foto:(l.Foto||l.Imagem||"").trim().replace(/^http:/,"https:"),
+        emoji:(l.Emoji||"").trim() || "🍰",
+        ativo: l.Disponivel === undefined && l.Disponível === undefined ? true : sim(l.Disponivel || l.Disponível)
+      }))
+      .filter(p => p.preco > 0);
+  }
+
+  async function carregar(){
+    if(!CONFIG.planilhaCSV){
+      PRODUTOS = EXEMPLOS.map((p,i)=> Object.assign({id:"e"+i, foto:""}, p));
+      return;
+    }
+    const url = CONFIG.planilhaCSV + (CONFIG.planilhaCSV.includes("?") ? "&" : "?") + "_cb=" + Date.now();
+    const res = await fetch(url, {cache:"no-store"});
+    if(!res.ok) throw new Error("Não consegui abrir a planilha (status " + res.status + ").");
+    const dados = Papa.parse(await res.text(), {header:true, skipEmptyLines:true});
+    PRODUTOS = daPlanilha(dados.data);
+    if(!PRODUTOS.length) throw new Error("A planilha abriu, mas não encontrei nenhum doce com nome e preço preenchidos.");
+    $("demoBar").remove();
+  }
+
+  /* ---------- desenhar cardápio ---------- */
+  function grupos(){
+    const vistos = [];
+    PRODUTOS.forEach(p => { if(!vistos.includes(p.grupo)) vistos.push(p.grupo); });
+    return vistos;
+  }
+
+  function desenharAbas(){
+    const todos = ["Tudo", ...grupos()];
+    $("abas").innerHTML = todos.map(g =>
+      `<button class="tab" role="tab" data-grupo="${g}" aria-selected="${g===grupoAtivo}">${g}</button>`
+    ).join("");
+    $("abas").querySelectorAll("[data-grupo]").forEach(b=>{
+      b.onclick = ()=>{ grupoAtivo = b.dataset.grupo; desenharAbas(); desenharLista(); };
+    });
+  }
+
+  function cartaoItem(p){
+    const q = carrinho.get(p.id) || 0;
+    const foto = p.foto
+      ? `<img class="foto" src="${p.foto}" alt="${p.nome}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto',textContent:'${p.emoji}'}))">`
+      : `<div class="foto">${p.emoji}</div>`;
+    const acao = !p.ativo
+      ? `<span class="esgotado">Sem estoque hoje</span>`
+      : q > 0
+        ? `<div class="stepper">
+             <button class="btn-q" data-menos="${p.id}" aria-label="Tirar um ${p.nome}">−</button>
+             <span class="qtd">${q}</span>
+             <button class="btn-q" data-mais="${p.id}" aria-label="Somar um ${p.nome}">+</button>
+           </div>`
+        : `<button class="btn-add" data-mais="${p.id}">Adicionar</button>`;
+    return `
+      <article class="item">
+        ${foto}
+        <div>
+          <h3>${p.nome}</h3>
+          ${p.desc ? `<p class="desc">${p.desc}</p>` : ""}
+          <div class="linha-preco">
+            <span class="preco">${brl(p.preco)} ${p.unidade ? `<small>/ ${p.unidade}</small>` : ""}</span>
+            ${acao}
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function desenharLista(){
+    const alvo = grupoAtivo === "Tudo" ? grupos() : [grupoAtivo];
+    $("lista").innerHTML = alvo.map(g=>{
+      const itens = PRODUTOS.filter(p => p.grupo === g);
+      if(!itens.length) return "";
+      return `<h2 class="grupo serif">${g}</h2>` + itens.map(cartaoItem).join("");
+    }).join("");
+  }
+
+  /* ---------- carrinho ---------- */
+  function itens(){
+    return [...carrinho.entries()].map(([id,q])=>{
+      const p = PRODUTOS.find(x=>x.id===id);
+      return {p, q, sub: p.preco * q};
+    });
+  }
+  const subtotal = ()=> itens().reduce((s,i)=> s + i.sub, 0);
+  const total = ()=> subtotal() + (entrega === "Entrega" ? CONFIG.taxaEntrega : 0);
+  const contarItens = ()=> [...carrinho.values()].reduce((s,q)=> s+q, 0);
+
+  function mudarQtd(id, delta){
+    const q = (carrinho.get(id) || 0) + delta;
+    if(q <= 0) carrinho.delete(id); else carrinho.set(id, q);
+    desenharLista();
+    atualizarBarra();
+  }
+
+  function atualizarBarra(){
+    const n = contarItens();
+    $("barra").classList.toggle("aberta", n > 0);
+    $("barraQtd").textContent = n === 1 ? "1 item" : n + " itens";
+    $("barraTotal").textContent = brl(subtotal());
+  }
+
+  document.addEventListener("click", (e)=>{
+    const mais = e.target.closest("[data-mais]");
+    const menos = e.target.closest("[data-menos]");
+    if(mais) mudarQtd(mais.dataset.mais, 1);
+    if(menos) mudarQtd(menos.dataset.menos, -1);
+  });
+
+  /* ---------- tela de pedido ---------- */
+  function desenharResumo(){
+    const linhas = itens().map(i =>
+      `<div class="resumo-linha"><span>${i.q}× ${i.p.nome}</span><span>${brl(i.sub)}</span></div>`
+    ).join("");
+    const frete = entrega === "Entrega"
+      ? `<div class="resumo-linha"><span>Entrega</span><span>${brl(CONFIG.taxaEntrega)}</span></div>` : "";
+    $("resumo").innerHTML = linhas + frete +
+      `<hr><div class="resumo-linha resumo-total"><span>Total</span><span>${brl(total())}</span></div>`;
+  }
+
+  function abrirTela(){
+    if(!contarItens()) return;
+    const hoje = new Date();
+    hoje.setDate(hoje.getDate() + CONFIG.diasAntecedencia);
+    const iso = hoje.toISOString().slice(0,10);
+    $("fData").min = iso;
+    if(!$("fData").value) $("fData").value = iso;
+    desenharResumo();
+    $("tela").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("fNome").focus();
+  }
+  function fecharTela(){
+    $("tela").hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  $("btnFechar").onclick = abrirTela;
+  $("btnX").onclick = fecharTela;
+  $("tela").onclick = (e)=>{ if(e.target === $("tela")) fecharTela(); };
+  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && !$("tela").hidden) fecharTela(); });
+
+  function ligarOpcoes(idBox, attr, aoTrocar){
+    $(idBox).querySelectorAll(".opcao").forEach(b=>{
+      b.onclick = ()=>{
+        $(idBox).querySelectorAll(".opcao").forEach(o=> o.setAttribute("aria-pressed","false"));
+        b.setAttribute("aria-pressed","true");
+        aoTrocar(b.dataset[attr]);
+      };
+    });
+  }
+  ligarOpcoes("opcEntrega","entrega",(v)=>{
+    entrega = v;
+    $("blocoEndereco").style.display = v === "Entrega" ? "" : "none";
+    desenharResumo();
+    atualizarBarra();
+  });
+  ligarOpcoes("opcPagto","pagto",(v)=>{ pagamento = v; });
+
+  /* ---------- montar e enviar a mensagem ---------- */
+  function dataBonita(iso){
+    if(!iso) return "";
+    const [a,m,d] = iso.split("-");
+    return `${d}/${m}/${a}`;
+  }
+
+  function validar(){
+    if(subtotal() < CONFIG.pedidoMinimo)
+      return `O pedido mínimo é ${brl(CONFIG.pedidoMinimo)}. Faltam ${brl(CONFIG.pedidoMinimo - subtotal())}.`;
+    if(!$("fNome").value.trim()) return "Escreva seu nome para as meninas saberem quem pediu.";
+    if($("fTel").value.replace(/\D/g,"").length < 10) return "Confira o número do WhatsApp — faltou algum dígito.";
+    if(entrega === "Entrega" && !$("fEnd").value.trim()) return "Escreva o endereço de entrega.";
+    if(!$("fData").value) return "Escolha o dia da entrega.";
+    return "";
+  }
+
+  function mensagem(){
+    const L = [];
+    L.push("*Novo pedido pelo cardápio*");
+    L.push("");
+    itens().forEach(i => L.push(`• ${i.q}× ${i.p.nome} — ${brl(i.sub)}`));
+    L.push("");
+    L.push(`Subtotal: ${brl(subtotal())}`);
+    if(entrega === "Entrega") L.push(`Entrega: ${brl(CONFIG.taxaEntrega)}`);
+    L.push(`*Total: ${brl(total())}*`);
+    L.push("");
+    L.push(`Nome: ${$("fNome").value.trim()}`);
+    L.push(`WhatsApp: ${$("fTel").value.trim()}`);
+    L.push(`Data: ${dataBonita($("fData").value)}`);
+    L.push(`Forma de entrega: ${entrega}`);
+    if(entrega === "Entrega") L.push(`Endereço: ${$("fEnd").value.trim()}`);
+    L.push(`Pagamento: ${pagamento}`);
+    if(pagamento === "Pix" && CONFIG.chavePix) L.push(`Chave Pix: ${CONFIG.chavePix}`);
+    const obs = $("fObs").value.trim();
+    if(obs){ L.push(""); L.push(`Observação: ${obs}`); }
+    return L.join("\n");
+  }
+
+  $("btnEnviar").onclick = ()=>{
+    const problema = validar();
+    const caixaErro = $("erro");
+    if(problema){
+      caixaErro.textContent = problema;
+      caixaErro.style.display = "block";
+      caixaErro.scrollIntoView({block:"center"});
+      return;
+    }
+    caixaErro.style.display = "none";
+    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(mensagem())}`, "_blank", "noopener");
+  };
+
+  /* ---------- iniciar ---------- */
+  carregar()
+    .then(()=>{ desenharAbas(); desenharLista(); atualizarBarra(); })
+    .catch(err=>{
+      $("lista").innerHTML =
+        `<div class="vazio"><h2>Cardápio indisponível agora</h2><p>${err.message}</p></div>`;
+    });
+
+})();
+</script>
+</body>
+</html>
