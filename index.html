@@ -70,7 +70,10 @@
   main{padding-top:26px;}
   h2.grupo{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:30px;margin:30px 0 14px;}
 
-  .item{display:grid;grid-template-columns:96px 1fr;gap:16px;background:var(--papel);border:1px solid var(--areia);border-radius:16px;padding:14px;margin-bottom:12px;}
+  .item{display:grid;grid-template-columns:96px 1fr;gap:16px;background:var(--papel);border:1px solid var(--areia);border-radius:16px;padding:14px;margin-bottom:12px;cursor:pointer;transition:border-color .15s,transform .15s;}
+  .item:hover{border-color:var(--framboesa);transform:translateY(-2px);}
+  .item:focus-visible{outline:2px solid var(--framboesa);outline-offset:2px;}
+  .ver-mais{font-size:13px;color:var(--framboesa);margin-top:6px;}
   .foto{width:96px;height:96px;border-radius:11px;object-fit:cover;background:var(--areia);display:flex;align-items:center;justify-content:center;font-size:34px;}
   .item h3{font-size:17px;font-weight:500;line-height:1.3;}
   .item p.desc{font-size:14.5px;color:var(--cacau-claro);margin-top:3px;}
@@ -142,6 +145,24 @@
   .aviso-envio{font-size:13.5px;color:var(--cacau-claro);text-align:center;margin-top:10px;}
   .erro{color:var(--framboesa);font-size:14px;margin-bottom:12px;display:none;}
 
+  /* ---------- detalhe do produto ---------- */
+  .prod-foto{width:100%;height:230px;border-radius:14px;object-fit:cover;background:var(--areia);display:flex;align-items:center;justify-content:center;font-size:74px;margin-bottom:18px;}
+  .prod-grupo{font-size:13.5px;color:var(--framboesa);text-transform:uppercase;letter-spacing:.08em;}
+  .prod-nome{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:31px;line-height:1.15;margin:4px 0 10px;}
+  .prod-desc{font-size:15.5px;color:var(--cacau-claro);line-height:1.6;}
+  .prod-preco{font-size:29px;font-weight:700;margin-top:18px;}
+  .prod-preco small{font-size:14px;font-weight:400;color:var(--cacau-claro);}
+  .prod-acao{margin-top:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .btn-grande{flex:1;min-width:180px;border:none;background:var(--framboesa);color:#fff;border-radius:13px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-grande:hover{background:var(--framboesa-escura);}
+  .btn-grande[disabled]{background:var(--areia);color:var(--cacau-claro);cursor:not-allowed;}
+  .prod-stepper{display:flex;align-items:center;gap:10px;background:var(--papel);border:1px solid var(--areia);border-radius:13px;padding:7px 12px;}
+  .prod-stepper .btn-q{width:38px;height:38px;font-size:21px;}
+  .prod-stepper .qtd{font-size:18px;min-width:32px;}
+
+  .btn-remover{border:none;background:none;color:var(--cacau-claro);font-size:19px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:7px;font-family:inherit;}
+  .btn-remover:hover{background:var(--areia);color:var(--framboesa);}
+
   .vazio{text-align:center;padding:46px 20px;color:var(--cacau-claro);}
   .vazio h2{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:26px;color:var(--cacau);margin-bottom:6px;}
   .vazio button{margin-top:16px;border:none;background:var(--framboesa);color:#fff;border-radius:11px;padding:11px 20px;font-size:15px;cursor:pointer;font-family:inherit;}
@@ -196,6 +217,21 @@
       <b id="barraTotal">R$ 0,00</b>
     </div>
     <button class="btn-fechar" id="btnFechar">Fechar pedido</button>
+  </div>
+</div>
+
+<div class="tela" id="telaProduto" hidden role="dialog" aria-modal="true" aria-labelledby="prodNome">
+  <div class="caixa">
+    <div class="caixa-topo" style="margin-bottom:14px">
+      <div></div>
+      <button class="btn-x" id="btnFecharProduto" aria-label="Voltar ao cardápio">✕</button>
+    </div>
+    <div id="prodFoto"></div>
+    <p class="prod-grupo" id="prodGrupo"></p>
+    <h2 class="prod-nome" id="prodNome"></h2>
+    <p class="prod-desc" id="prodDesc"></p>
+    <p class="prod-preco" id="prodPreco"></p>
+    <div class="prod-acao" id="prodAcao"></div>
   </div>
 </div>
 
@@ -379,11 +415,12 @@
            </div>`
         : `<button class="btn-add" data-mais="${p.id}">Adicionar</button>`;
     return `
-      <article class="item">
+      <article class="item" data-ver="${p.id}" tabindex="0" role="button" aria-label="Ver detalhes de ${esc(p.nome)}">
         ${foto}
         <div>
           <h3>${esc(p.nome)}</h3>
           ${p.desc ? `<p class="desc">${esc(p.desc)}</p>` : ""}
+          <p class="ver-mais">Ver detalhes</p>
           <div class="linha-preco">
             <span class="preco">${brl(p.preco)} ${p.unidade ? `<small>/ ${esc(p.unidade)}</small>` : ""}</span>
             ${acao}
@@ -423,7 +460,10 @@
       <article class="pedido">
         <div class="pedido-topo">
           <span class="codigo">Pedido #${esc(ped.codigo)}</span>
-          <span class="quando">${esc(ped.feitoEm)} · ${esc(ped.entrega)} em ${esc(ped.data)}</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="quando">${esc(ped.feitoEm)} · ${esc(ped.entrega)} em ${esc(ped.data)}</span>
+            <button class="btn-remover" data-apagar="${esc(ped.codigo)}" aria-label="Remover este pedido da lista" title="Remover da lista">✕</button>
+          </span>
         </div>
         <ul>${ped.itens.map(i => `<li>${i.q}× ${esc(i.nome)}</li>`).join("")}</ul>
         <div class="pedido-pe">
@@ -435,8 +475,15 @@
     $("historico").innerHTML = `
       <div class="nota-historico">
         Estes pedidos ficam guardados só neste celular, para você repetir com um toque.
-        Para saber como está o andamento, fale com a gente no WhatsApp usando o número do pedido.
+        O ✕ tira o pedido desta lista, mas não cancela a encomenda —
+        para cancelar, fale com a gente no WhatsApp usando o número do pedido.
       </div>${cartoes}`;
+  }
+
+  function apagarPedido(codigo){
+    if(!confirm("Tirar o pedido #" + codigo + " desta lista?\n\nIsso não cancela a encomenda — para cancelar, fale no WhatsApp.")) return;
+    guarda.gravar(guarda.ler().filter(p => p.codigo !== codigo));
+    desenharHistorico();
   }
 
   function repetir(codigo){
@@ -454,6 +501,56 @@
     window.scrollTo({top:0});
     if(faltou) alert("Alguns doces desse pedido não estão no cardápio hoje. Adicionamos o que está disponível.");
   }
+
+  /* ---------- detalhe do produto ---------- */
+  let produtoAberto = null;
+
+  function desenharAcaoProduto(){
+    const p = produtoAberto;
+    if(!p) return;
+    const q = carrinho.get(p.id) || 0;
+    if(!p.ativo){
+      $("prodAcao").innerHTML = `<button class="btn-grande" disabled>Sem estoque hoje</button>`;
+      return;
+    }
+    $("prodAcao").innerHTML = q > 0
+      ? `<div class="prod-stepper">
+           <button class="btn-q" data-menos="${p.id}" aria-label="Tirar um">−</button>
+           <span class="qtd">${q}</span>
+           <button class="btn-q" data-mais="${p.id}" aria-label="Somar um">+</button>
+         </div>
+         <button class="btn-grande" id="btnVoltarCardapio">Continuar escolhendo</button>`
+      : `<button class="btn-grande" data-mais="${p.id}">Adicionar ao pedido</button>`;
+    const v = $("btnVoltarCardapio");
+    if(v) v.onclick = fecharProduto;
+  }
+
+  function abrirProduto(id){
+    const p = PRODUTOS.find(x => x.id === id);
+    if(!p) return;
+    produtoAberto = p;
+    $("prodFoto").innerHTML = p.foto
+      ? `<img class="prod-foto" src="${esc(p.foto)}" alt="${esc(p.nome)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'prod-foto',textContent:'${p.emoji}'}))">`
+      : `<div class="prod-foto">${p.emoji}</div>`;
+    $("prodGrupo").textContent = p.grupo;
+    $("prodNome").textContent = p.nome;
+    const d = $("prodDesc");
+    d.textContent = p.desc || "";
+    d.style.display = p.desc ? "" : "none";
+    $("prodPreco").innerHTML = brl(p.preco) + (p.unidade ? ` <small>/ ${esc(p.unidade)}</small>` : "");
+    desenharAcaoProduto();
+    $("telaProduto").hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function fecharProduto(){
+    $("telaProduto").hidden = true;
+    produtoAberto = null;
+    document.body.style.overflow = "";
+  }
+
+  $("btnFecharProduto").onclick = fecharProduto;
+  $("telaProduto").onclick = (e)=>{ if(e.target === $("telaProduto")) fecharProduto(); };
 
   /* ---------- trocar seção ---------- */
   function trocarSecao(qual){
@@ -485,6 +582,7 @@
     if(q <= 0) carrinho.delete(id); else carrinho.set(id, q);
     desenharLista();
     atualizarBarra();
+    if(produtoAberto && produtoAberto.id === id) desenharAcaoProduto();
   }
 
   function atualizarBarra(){
@@ -498,9 +596,19 @@
     const mais = e.target.closest("[data-mais]");
     const menos = e.target.closest("[data-menos]");
     const rep = e.target.closest("[data-repetir]");
-    if(mais) mudarQtd(mais.dataset.mais, 1);
-    if(menos) mudarQtd(menos.dataset.menos, -1);
-    if(rep) repetir(rep.dataset.repetir);
+    const apagar = e.target.closest("[data-apagar]");
+    const ver = e.target.closest("[data-ver]");
+    if(mais){ e.stopPropagation(); mudarQtd(mais.dataset.mais, 1); return; }
+    if(menos){ e.stopPropagation(); mudarQtd(menos.dataset.menos, -1); return; }
+    if(rep){ repetir(rep.dataset.repetir); return; }
+    if(apagar){ apagarPedido(apagar.dataset.apagar); return; }
+    if(ver) abrirProduto(ver.dataset.ver);
+  });
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key !== "Enter" && e.key !== " ") return;
+    const ver = e.target.closest && e.target.closest("[data-ver]");
+    if(ver){ e.preventDefault(); abrirProduto(ver.dataset.ver); }
   });
 
   /* ---------- tela de pedido ---------- */
@@ -516,6 +624,7 @@
 
   function abrirTela(){
     if(!contarItens()) return;
+    fecharProduto();
     const d = new Date();
     d.setDate(d.getDate() + CONFIG.diasAntecedencia);
     const iso = d.toISOString().slice(0,10);
@@ -534,7 +643,11 @@
   $("btnFechar").onclick = abrirTela;
   $("btnX").onclick = fecharTela;
   $("tela").onclick = (e)=>{ if(e.target === $("tela")) fecharTela(); };
-  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && !$("tela").hidden) fecharTela(); });
+  document.addEventListener("keydown", (e)=>{
+    if(e.key !== "Escape") return;
+    if(!$("tela").hidden) fecharTela();
+    else if(!$("telaProduto").hidden) fecharProduto();
+  });
 
   function ligarOpcoes(idBox, attr, aoTrocar){
     $(idBox).querySelectorAll(".opcao").forEach(b=>{
