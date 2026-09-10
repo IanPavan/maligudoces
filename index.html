@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maligu Doces — Cardápio e encomendas</title>
-<meta name="description" content="Bolo de pote, brigadeiro gourmet e ovo de colher por encomenda em Umuarama. Monte seu pedido e receba o resumo pronto no WhatsApp.">
+<meta name="description" content="Maligu Doces — feito em casa, com carinho e sem pressa. Bolo de pote, brigadeiro gourmet e ovo de colher por encomenda em Umuarama.">
 <meta name="theme-color" content="#B92B55">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23B92B55'/%3E%3Cpath d='M16 40h32v6a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4z' fill='%23FCF5EE'/%3E%3Cpath d='M18 40c0-8 6-14 14-14s14 6 14 14z' fill='%23FCF5EE'/%3E%3Ccircle cx='32' cy='21' r='4' fill='%236E8E4E'/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -42,7 +42,8 @@
   header{padding:34px 0 24px;}
   h1{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(38px,9vw,58px);line-height:1;letter-spacing:-.5px;}
   h1 em{font-style:italic;color:var(--framboesa);}
-  .sub{margin-top:14px;font-size:17px;color:var(--cacau-claro);max-width:46ch;}
+  .sub{margin-top:16px;font-family:'Instrument Serif',Georgia,serif;font-size:24px;line-height:1.3;color:var(--cacau);max-width:30ch;}
+  .sub-menor{margin-top:8px;font-size:15.5px;color:var(--cacau-claro);max-width:44ch;}
   .fatos{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
   .fato{background:var(--papel);border:1px solid var(--areia);border-radius:999px;padding:7px 14px;font-size:13.5px;color:var(--cacau-claro);}
   .fato b{color:var(--cacau);font-weight:500;}
@@ -158,7 +159,8 @@
 <div class="wrap">
   <header>
     <h1 class="serif">Maligu <em>Doces</em></h1>
-    <p class="sub">Bolo de pote, brigadeiro gourmet e ovo de colher feitos por encomenda, aqui em Umuarama. Monte seu pedido na página e receba o resumo pronto no WhatsApp.</p>
+    <p class="sub">Feito em casa, com carinho e sem pressa.</p>
+    <p class="sub-menor">Monte seu pedido aqui e receba o resumo pronto no WhatsApp.</p>
     <div class="fatos">
       <span class="fato">Encomenda com <b>2 dias</b> de antecedência</span>
       <span class="fato">Pedido mínimo <b>R$ 25</b></span>
@@ -183,7 +185,7 @@
 <div class="wrap">
   <footer>
     <p>Maligu Doces · Umuarama/PR · Pedidos pelo WhatsApp</p>
-    <p style="margin-top:6px">Página feita por <a href="#">seu nome aqui</a></p>
+    <p style="margin-top:6px">Site feito por <a href="https://wa.me/5544991140169" target="_blank" rel="noopener">IanPavan · 44 99114-0169</a></p>
   </footer>
 </div>
 
@@ -260,12 +262,12 @@
   ===================================================================== */
   const CONFIG = {
     loja: "Maligu Doces",
-    whatsapp: "5544991140169",   // DDI + DDD + número, só dígitos
+    whatsapp: "5544998340965",   // DDI + DDD + número, só dígitos
     taxaEntrega: 8.00,
     pedidoMinimo: 25.00,
     diasAntecedencia: 2,
     chavePix: "",                // opcional: aparece na mensagem se preenchido
-    planilhaCSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTKMxD4k0NjHVJCplY47OSZloDkpsuT9Ec-ioO5eU_u7ub3QN87ylK8XOdpO7deYQ/pub?gid=12177455&single=true&output=csv"              // cole aqui o link CSV publicado do Google Sheets
+    planilhaCSV: ""              // cole aqui o link CSV publicado do Google Sheets
   };
 
   const EXEMPLOS = [
